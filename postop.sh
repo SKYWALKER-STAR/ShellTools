@@ -13,7 +13,6 @@ then
 fi
 
 OR_SIMBLE="\|"
-APP_BASE_PATH=/home/ming/run/
 APP_START_COMMAND=
 
 APP_PORTS=($*)
@@ -34,8 +33,19 @@ done
 
 TARGET_APPS=`netstat -ntlp | grep $TPORTS | awk '{print $7}'`
 array=${TARGET_APPS}
-for i in ${TARGET_APPS[@]}
+
+for i in ${array[@]}
 do
 	PID=${i/\/[a-zA-Z]*/""}
-	kill -9 $PID
+        PID=`echo $i | egrep -o "^[0-9]+"`
+        echo -e "Are you sure you wante kill \"$i\"?(yes|no):\c"
+        read i
+        case $i in
+        y|Y|yes|Yes|yEs|yeS|YES)
+		kill -9 $PID
+        ;;
+        n|N|no|No|nO)
+		continue
+        ;;
+        esac
 done
