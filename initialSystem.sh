@@ -84,7 +84,7 @@ function SUCCESS()
 
 function _get_ip_address()
 {
-	IPADDRESS=`ip addr show | egrep inet | egrep -v "127.0.0.1" | awk -F" " '{print $2}' | egrep "[0-9]{2,3}\.[0-9]{2,3}\.[0-9]{2,3}\.[0-9]{2,3}" | awk -F "/" '{print $1}'`
+	IPADDRESS=`ip addr show | egrep inet | egrep -v "127.0.0.1" | awk -F" " '{print $2}' | egrep "[1-9]{1,3}\.[1-9]{1,3}\.[1-9]{1,3}\.[1-9]{1,3}" | awk -F "/" '{print $1}'`
 	IPADDRESS=($(echo $IPADDRESS | tr ' ' ' '))
 	IPNUMBER=${#IPADDRESS[@]}
 
@@ -746,6 +746,7 @@ function misc()
 	IP=$IPADDRESS
 	PATTERN="'[\u@$IP \w]'"
 	echo "export PS1=$PATTERN" >> /etc/profile
+	printOKMessage "set PS1 to $PATTERN"
 
 
 }
