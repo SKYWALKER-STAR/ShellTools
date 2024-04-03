@@ -82,6 +82,20 @@ function SUCCESS()
 # Modify hostName                     #
 #######################################
 
+function _get_ip_address()
+{
+	IPADDRESS=`ip addr show | egrep inet | egrep -v "127.0.0.1" | awk -F" " '{print $2}' | egrep "[0-9]{2,3}\.[0-9]{2,3}\.[0-9]{2,3}\.[0-9]{2,3}" | awk -F "/" '{print $1}'`
+	IPADDRESS=($(echo $IPADDRESS | tr ' ' ' '))
+	IPNUMBER=${#IPADDRESS[@]}
+
+	if [[ $IPNUMBER -gt 1 ]]
+	then
+		IPADDRESS="${IPADDRESS[0]}"
+	else
+		IPADDRESS="$IPADDRESS"
+	fi
+}
+
 function SetHostName()
 {
 	#printOrange
@@ -721,6 +735,22 @@ function SSH_Configuration()
 }
 
 #######################################
+# 对细节进行调整		      #
+# 1. 命令行的用户及目录名称           #
+#######################################
+
+function misc()
+{
+	#自定义环境变量PS1
+	_get_ip_address
+	IP=$IPADDRESS
+	PATTERN="'[\u@$IP \w]'"
+	echo "export PS1=$PATTERN" >> /etc/profile
+
+
+}
+
+#######################################
 # Start to run                        #
 #######################################
 
@@ -728,17 +758,18 @@ echo "#################################"
 echo "#  welcome to Initial script    #"
 echo "#################################"
 
-TTY_Initial
-SetHostName
-SetTimeZone
-CreateUsers
-#ModifyRoot_PassWord
-doModifySecurity
-doModifyKernel
-SSH_Configuration
-Disable_Selinux
-ShutDownFireWall
-ForbiddenCTRL_ALT_DEL
+#TTY_Initial
+#SetHostName
+#SetTimeZone
+#CreateUsers
+##ModifyRoot_PassWord
+#doModifySecurity
+#doModifyKernel
+#SSH_Configuration
+#Disable_Selinux
+#ShutDownFireWall
+#ForbiddenCTRL_ALT_DEL
+misc
 #InitialSetup_Partition
 
 echo "#################################"
