@@ -84,7 +84,7 @@ function SUCCESS()
 
 function _get_ip_address()
 {
-	IPADDRESS=`ip addr show | egrep inet | egrep -v "127.0.0.1" | awk -F" " '{print $2}' | egrep "[1-9]{1,3}\.[1-9]{1,3}\.[1-9]{1,3}\.[1-9]{1,3}" | awk -F "/" '{print $1}'`
+	IPADDRESS=`ip addr show | egrep inet | egrep -v "127.0.0.1" | awk -F" " '{print $2}' | egrep "^[1-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[1-9]{1,3}" | awk -F "/" '{print $1}'`
 	IPADDRESS=($(echo $IPADDRESS | tr ' ' ' '))
 	IPNUMBER=${#IPADDRESS[@]}
 
@@ -719,6 +719,29 @@ function SSH_DisableRootLogin()
 	
 }
 
+function SSH_CONFIG_MISC() {
+
+	sed -i "/*.Protocol.*/d" $CONFIGURATIONFILE
+	sed -i "/*.X11Forwarding.*/d" $CONFIGURATIONFILE
+	sed -i "/*.IgnoreRhosts.*/d" $CONFIGURATIONFILE
+	sed -i "/*.RhostsRSAAuthentication.*/d" $CONFIGURATIONFILE
+	sed -i "/*.HostbasedAuthentication.*/d" $CONFIGURATIONFILE
+	sed -i "/*.PermitRootLogin.*/d" $CONFIGURATIONFILE
+	sed -i "/*.PermitEmptyPasswords.*/d" $CONFIGURATIONFILE
+	sed -i "/*.s.*/d" $CONFIGURATIONFILE
+
+	sed -i '$a Protocol 2' $CONFIGURATIONFILE
+	sed -i '$a X11Forwarding yes' $CONFIGURATIONFILE
+	sed -i '$a IgnoreRhosts yes' $CONFIGURATIONFILE
+	sed -i '$a RhostsRSAAuthentication no' $CONFIGURATIONFILE
+	sed -i '$a HostbasedAuthentication no' $CONFIGURATIONFILE
+	sed -i '$a PermitRootLogin no' $CONFIGURATIONFILE
+	sed -i '$a PermitEmptyPasswords no' $CONFIGURATIONFILE
+	sed -i '$a Banner /etc/motd' $CONFIGURATIONFILE
+
+	printOKMessage "Config sshd configuration succcessed"
+}
+
 function SSH_Configuration()
 {
 
@@ -752,6 +775,82 @@ function misc()
 }
 
 #######################################
+# 口令最长生存期策略                  #
+#######################################
+
+function  PasswordDateRelated() {
+	CONFIGFILE="/etc/login.defs"
+
+	sed -i "/.*PASS_MAX_DAYS.*/d" $CONFIGFILE
+	sed -i "/.*PASS_MIN_DAYS.*/d" $CONFIGFILE
+	sed -i "/.*PASS_WARN_AGE.*/d" $CONFIGFILE
+
+	sed -i '$a PASS_MAX_DAYS 180' $CONFIGFILE
+	sed -i '$a PASS_MIN_DAYS 90' $CONFIGFILE
+	sed -i '$a PASS_WARN_AGE 120' $CONFIGFILE
+
+	printOKMessage "Config password lifecycle successed"
+
+}
+
+#######################################
+# 用户缺省权限控制		      #
+#######################################
+
+function Setumask() {
+	CONFIGFILE="/etc/profile"
+
+	sed -i "/.*umask 0027.*/d" $CONFIGFILE
+	sed -i '$a umask 0027' $CONFIGFILE
+
+	printOKMessage "Set umask to 0027"
+}
+
+#######################################
+# 设置history时间戳		      #
+#######################################
+
+function SetHistoryTime() {
+	CONFIGFILE="/etc/profile"
+
+	sed -i "/.export HISTTIMEFORMAT*/d" $CONFIGFILE
+	sed -i '$a export HISTIMEFORMAT="%F %F"' $CONFIGFILE
+
+	printOKMessage "Set history timestamp successed"
+}
+
+#######################################
+# 安全日志完备性配置		      #
+#######################################
+
+function ConfigSyslog() {
+	CONFIGFILE='/etc/syslog.conf'
+
+	if [[ -f $CONFIGFILE ]]
+	then
+		sed -i '$a authpriv.*	/var/log/secure' $CONFIGFILE
+	else
+		touch $CONFIGFILE
+		sed -i '$a authpriv.*	/var/log/secure' $CONFIGFILE
+	fi
+
+	printOKMessage "Config $CONFIGFILE successed"
+}
+
+#######################################
+# 设置密码复杂度策略		      #
+#######################################
+
+function SetPasswordPolicy() {
+	CONFIGFILE='/etc/pam.d/system-auth'
+
+	sed -i '$a password	requisite	pam_cracklib.so	minlen=6 dcredit=-1 ucredit=-1 lcredit=-1 ocredit=-1'
+
+	printOKMessage "Config password complex policy successed"
+
+}
+
+#######################################
 # Start to run                        #
 #######################################
 
@@ -770,8 +869,13 @@ echo "#################################"
 #Disable_Selinux
 #ShutDownFireWall
 #ForbiddenCTRL_ALT_DEL
-misc
+#misc
 #InitialSetup_Partition
+#PasswordDateRelated
+Setumask
+SetHistoryTime
+SSH_CONFIG_MISC
+ConfigSyslog
 
 echo "#################################"
 echo "# Initial script complet        #"
@@ -781,3 +885,4 @@ echo "#################################"
 #Disable initial-setup.service.	      #
 #######################################
 #systemctl disable initial-setup.service
+
