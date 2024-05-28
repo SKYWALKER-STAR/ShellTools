@@ -2,7 +2,7 @@
 
 ######################################
 #Create Date: 2023/02/26             #
-#Last modify date: 2024/04/02	     #
+#Last modify date: 2024/05/28	     #
 #Description: Linux初始话脚本        # 
 #Author: ming                        #
 ######################################
@@ -54,6 +54,14 @@ function printFailMessage()
 function TTY_Initial()
 {
 	stty erase "^H"
+}
+
+######################################
+# 检查脚本执行用户		     #
+######################################
+
+function CHK_TASK_USER(){
+    [ $(id -u) != "0" ] && { echo -e "\e[31m请使用root账号执行本初始化脚本\e[0m"; exit 1; }
 }
 
 
@@ -631,11 +639,18 @@ function doModifySecurity()
 
 function doModifyKernel()
 {
-	touch "/etc/sysctl.d/01-sysctl.conf"
+
 	CONFIGURATION_FILE="/etc/sysctl.d/01-sysctl.conf"
-	
-	echo "# Custom kernel tunable config file " > $CONFIGURATION_FILE
-	TCPIP_Related $CONFIGURATION_FILE
+
+	if [[ -f $CONFIGURATION_FILE ]]
+	then
+		echo "# Custom kernel tunable config file " > $CONFIGURATION_FILE
+		TCPIP_Related $CONFIGURATION_FILE
+	else
+		touch "/etc/sysctl.d/01-sysctl.conf"
+		echo "# Custom kernel tunable config file " > $CONFIGURATION_FILE
+		TCPIP_Related $CONFIGURATION_FILE
+	fi
 }
 
 
@@ -757,22 +772,6 @@ function SSH_Configuration()
 
 }
 
-#######################################
-# 对细节进行调整		      #
-# 1. 命令行的用户及目录名称           #
-#######################################
-
-function misc()
-{
-	#自定义环境变量PS1
-	_get_ip_address
-	IP=$IPADDRESS
-	PATTERN="'[\u@$IP \w]'"
-	echo "export PS1=$PATTERN" >> /etc/profile
-	printOKMessage "set PS1 to $PATTERN"
-
-
-}
 
 #######################################
 # 口令最长生存期策略                  #
@@ -814,7 +813,7 @@ function SetHistoryTime() {
 	CONFIGFILE="/etc/profile"
 
 	sed -i "/.export HISTTIMEFORMAT*/d" $CONFIGFILE
-	sed -i '$a export HISTIMEFORMAT="%F %F"' $CONFIGFILE
+	sed -i '$a export HISTTIMEFORMAT="%F %F"' $CONFIGFILE
 
 	printOKMessage "Set history timestamp successed"
 }
@@ -844,10 +843,27 @@ function ConfigSyslog() {
 function SetPasswordPolicy() {
 	CONFIGFILE='/etc/pam.d/system-auth'
 
-	sed -i '$a password	requisite	pam_cracklib.so	minlen=6 dcredit=-1 ucredit=-1 lcredit=-1 ocredit=-1'
+	sed -i "/.*pam_cracklib\.so.*/d" $CONFIGFILE
+	sed -i '$a password	requisite	pam_cracklib.so	minlen=6 dcredit=-1 ucredit=-1 lcredit=-1 ocredit=-1' $CONFIGFILE
 
 	printOKMessage "Config password complex policy successed"
 
+}
+
+#######################################
+# 对细节进行调整		      #
+# 1. 命令行的用户及目录名称           #
+#######################################
+
+function misc()
+{
+	#自定义环境变量PS1
+	_get_ip_address
+	IP=$IPADDRESS
+	PATTERN="'[\u@$IP \w]'"
+	echo "export PS1=$PATTERN" >> /etc/profile
+	source /etc/profile
+	printOKMessage "set PS1 to $PATTERN"
 }
 
 #######################################
@@ -858,6 +874,7 @@ echo "#################################"
 echo "#  welcome to Initial script    #"
 echo "#################################"
 
+CHK_TASK_USER
 #TTY_Initial
 #SetHostName
 #SetTimeZone
@@ -869,20 +886,16 @@ echo "#################################"
 #Disable_Selinux
 #ShutDownFireWall
 #ForbiddenCTRL_ALT_DEL
-#misc
 #InitialSetup_Partition
 #PasswordDateRelated
-Setumask
-SetHistoryTime
-SSH_CONFIG_MISC
-ConfigSyslog
+#Setumask
+#SetHistoryTime
+#SSH_CONFIG_MISC
+#ConfigSyslog
+#SetPasswordPolicy
+
+misc
 
 echo "#################################"
 echo "# Initial script complet        #"
 echo "#################################"
-
-#######################################
-#Disable initial-setup.service.	      #
-#######################################
-#systemctl disable initial-setup.service
-
