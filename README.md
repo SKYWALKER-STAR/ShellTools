@@ -12,9 +12,9 @@
 
 3. 示例
 
-	`
+	```bash
 	/bin/bash postop.sh port
-	`
+	```
 ### 2.file-update.sh
 ---
 1. 该脚本获取两个参数，NEW_PREFIX和OLD_PREFIX.脚本将NEW_PREFIX中的内容复制到OLD_PREFIX目录中。该脚本使用的场景是，新旧目录都包含同样的文件，但是旧目录中还包含了其他无需操作的文件。该脚本只更新新旧目录中共同存在的文件。
@@ -24,14 +24,14 @@
 3. 示例
 
 	旧目录
-	`
+	```bash
 	/usr/bin
-	`
+	```
 
 	新目录
-	`
+	```bash
 	/Downloads/software
-	`
+	```
 
 	旧目录里面包含三个文件:
 
@@ -46,15 +46,15 @@
 
 	现在需要将新目录中的文件更新到旧目录中 ,并且将旧目录中的文件进行备份(只操作新旧目录中共同存在的文件，文件名一一对应)`/Downloads/software/ -> /usr/bin`,按照以下方式执行脚本即可:
 
-	`
+	```bash
 	/bin/bash file-update.sh /Downloads/software/ /usr/bin
-	`
+	```
 
 	执行后可使用diff命令对比两个目录的区别
 
-	`
+	```bash
 	diff -r /usr/bin /Downloads/software
-	`
+	```
 
 ### 3. dist.sh
 ---
@@ -64,9 +64,9 @@
 
 3. 示例
 
-	`
+	``` bash
 	/bin/bash file-update.sh filePath iplist.txt port.txt
-	`
+	```
 
 	其中,iplist.txt 和 port.txt中的内容是每一行一一对应的
 
@@ -92,9 +92,9 @@
 1. 服务启停脚本
 
 2. 示例
-	`
+	``` bash
 	/bin/bash service.sh start|stop|restart
-	`
+	```
 
 ### 7. sendNotify.py
 ---
@@ -103,6 +103,30 @@
 2. Require python3.8及以上
 
 3. 示例
-	`
+	```bash
 	python sendNotify.py
-	`
+	```
+### 8. datause.sh
+---
+1. datause.sh脚本中包含了shell数据结构的基本使用方法，例如字典的遍历等。还包括了一个基本的获取当前目录下hosts文件的绝对路径的逻辑，使用ansible时可以将该逻辑放在脚本前，来获取hosts文件
+
+2. 示例
+	```bash
+	./datause.sh
+	```
+### 8. datause.sh
+---
+1. nginx-op.sh脚本是批量管理Nginx的脚本模板。结合ansible使用.
+
+2. 示例
+	```bash
+	#在最下方添加命令
+	if [[ $COMMAND == "backup" ]];
+	then
+	   ansible -i $HOSTSFILE name -m shell -a "cp -ra $NGINX_CONF/nginx.conf nginx.conf-$OPDATE"
+	fi
+
+	#运行脚本
+	./nginx-op.sh
+	
+	```
