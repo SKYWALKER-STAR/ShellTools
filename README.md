@@ -130,3 +130,13 @@
 	./nginx-op.sh
 	
 	```
+
+### 9. unpack.sh
+---
+1. unpack.sh脚本用于解压不同格式的文件，目前支持".zip,.tar,tgz,gz"文件的解压缩
+
+2. 示例
+     ```bash
+    #运行脚本
+    ./unpacke.sh [file] [destnation]
+    ```
