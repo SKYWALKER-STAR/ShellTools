@@ -92,7 +92,7 @@ function SUCCESS()
 
 function _get_ip_address()
 {
-	IPADDRESS=`ip addr show | egrep inet | egrep -v "127.0.0.1" | awk -F" " '{print $2}' | egrep "^[1-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[1-9]{1,3}" | awk -F "/" '{print $1}'`
+	IPADDRESS=`ip addr show | egrep inet | egrep -v "127.0.0.1" | awk -F" " '{print $2}' | egrep "^[1-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[1-9]{1,3}" | awk -F "/" 'NR==1 {print $1}'`
 	IPADDRESS=($(echo $IPADDRESS | tr ' ' ' '))
 	IPNUMBER=${#IPADDRESS[@]}
 

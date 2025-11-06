@@ -18,7 +18,7 @@ then
 	exit
 fi
 
-if [[ $@ -ne 2 ]]
+if [[ $# -ne 2 ]]
 then
 	echo -ne "\033[33;40m\c"
 	echo -ne "[WARN]"
